@@ -1,0 +1,40 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model BudgetItem {
+  id        Int      @id @default(autoincrement())
+  name      String // Nombre del presupuesto
+  category  String // Categoría (comida, transporte, ropa, etc.)
+  amount    Float // Monto asignado
+  note      String? // Descripción opcional
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String // Nombre del usuario
+  email     String // Email del usuario
+  password  String // Contraseña del usuario
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Budget {
+  id        Int      @id @default(autoincrement())
+  amount    Float // Monto total del presupuesto
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
