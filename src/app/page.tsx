@@ -1,26 +1,90 @@
 import { BudgetOverview } from "@/components/BudgetOverview";
+import { DashboardStats } from "@/components/DashboardStats";
+import { DashboardHeader } from "@/components/DashboardHeader";
+import { ExpenseChart } from "@/components/charts/ExpenseChart";
+import { BudgetPieChart } from "@/components/charts/BudgetPieChart";
+import { TransactionChart } from "@/components/charts/TransactionChart";
+import { TransactionList } from "@/components/TransactionList";
+import { TransactionForm } from "@/components/form/TransactionForm";
 import { Form } from "@/components/form/Form";
 import { TaskForm } from "@/components/form/TaskForm";
 import { Table } from "@/components/Table";
-import { getBudget, getBudgetItems } from "@/lib/actions";
+import { getBudget, getBudgetItems, getTransactions } from "@/lib/actions";
 
 export default async function Home() {
   const budgets = await getBudgetItems();
   const budget = await getBudget();
+  const transactions = await getTransactions();
+  const income = budget?.amount || 0;
+
   return (
-    <div className="grid grid-cols-5 grid-rows-5 gap-6 h-screen p-4">
-      <div className="col-span-3 bg-[#F6F6F6] rounded-2xl p-4">
-        <BudgetOverview budget={budget} />
-      </div>
-      <div className="col-span-2 col-start-4 bg-[#F6F6F6] rounded-2xl p-4">
-        <Form budget={budget} />
-      </div>
-      <div className="col-span-2 row-span-4 col-start-4 row-start-2 bg-[#F6F6F6] rounded-2xl">
-        <TaskForm />
-      </div>
-      <div className="col-span-3 row-span-4 row-start-2 bg-[#BBFD1A] p-4 rounded-2xl h-full">
-        <Table budgets={budgets} budget={budget} />  
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      {/* Header */}
+      <DashboardHeader />
+
+      {/* Stats Cards */}
+      <DashboardStats
+        budget={budget}
+        budgets={budgets}
+        transactions={transactions}
+      />
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-12 gap-6">
+        {/* Left Column - Charts */}
+        <div className="col-span-8 space-y-6">
+          {/* Budget Overview */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
+            <BudgetOverview budget={budget} />
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm h-80">
+              <ExpenseChart budgets={budgets} income={income} />
+            </div>
+            <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm h-80">
+              <BudgetPieChart budgets={budgets} income={income} />
+            </div>
+          </div>
+
+          {/* Transaction Chart */}
+          {transactions.length > 0 && (
+            <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm h-80">
+              <TransactionChart transactions={transactions} />
+            </div>
+          )}
+
+          {/* Budget Table */}
+          <div className="bg-[#BBFD1A] rounded-2xl p-6 shadow-sm">
+            <Table budgets={budgets} budget={budget} />
+          </div>
+        </div>
+
+        {/* Right Column - Forms and Transactions */}
+        <div className="col-span-4 space-y-6">
+          {/* Budget Form */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
+            <Form budget={budget} />
+          </div>
+
+          {/* Task Form */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
+            <TaskForm />
+          </div>
+
+          {/* Transaction Form */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
+            <TransactionForm />
+          </div>
+
+          {/* Transaction List */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm h-96">
+            <TransactionList transactions={transactions} />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
+

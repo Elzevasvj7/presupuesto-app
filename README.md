@@ -1,36 +1,121 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💰 Dashboard de Presupuesto - Aplicación Mejorada
 
-## Getting Started
+## 🚀 Descripción
 
-First, run the development server:
+Aplicación web completa para gestión de presupuestos personales con dashboard administrativo, gráficos interactivos y sistema de transacciones.
+
+## ✨ Nuevas Funcionalidades Agregadas
+
+### 📊 Dashboard Administrativo
+- **Header Moderno**: Con fecha actual y avatar de usuario
+- **Tarjetas de Estadísticas**: 6 indicadores en tiempo real
+  - Presupuesto Total
+  - Gastos Planificados
+  - Disponible
+  - Ingresos del Mes
+  - Gastos del Mes
+  - Balance Mensual
+
+### 📈 Gráficos Interactivos (Recharts)
+1. **Gráfico de Barras**: Comparación de presupuestado vs gastado por categoría
+2. **Gráfico Circular**: Distribución porcentual del presupuesto
+3. **Gráfico de Líneas**: Historial de transacciones (últimos 10 días)
+
+### 💳 Sistema de Transacciones
+- Registro de ingresos y gastos
+- Categorización flexible
+- Fechas personalizables
+- Lista de transacciones recientes con colores diferenciados
+- Eliminación rápida de transacciones
+
+## 🔧 Instalación y Configuración
+
+### 1. Instalar Dependencias
+
+```bash
+npm install
+```
+
+### 2. Configurar Base de Datos
+
+Asegúrate de tener un archivo `.env` con tu conexión a PostgreSQL/Supabase:
+
+```env
+DATABASE_URL="postgresql://..."
+```
+
+### 3. Ejecutar Migraciones
+
+**Opción A - Script automático (Windows):**
+```bash
+setup-db.bat
+```
+
+**Opción B - Manual:**
+```bash
+npx prisma generate
+npx prisma migrate dev
+```
+
+### 4. Iniciar Aplicación
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abre [http://localhost:3000](http://localhost:3000) en tu navegador.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Estructura Principal
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/page.tsx              # Dashboard principal
+├── components/
+│   ├── DashboardHeader.tsx   # Header (NUEVO)
+│   ├── DashboardStats.tsx    # Estadísticas (NUEVO)
+│   ├── TransactionList.tsx   # Transacciones (NUEVO)
+│   ├── charts/               # Gráficos (NUEVO)
+│   └── form/                 # Formularios (MEJORADOS)
+└── lib/actions.ts            # Server actions
+```
 
-## Learn More
+## 🎨 Funcionalidades
 
-To learn more about Next.js, take a look at the following resources:
+- ✅ Sistema de presupuesto mensual (regla 50/30/20)
+- ✅ Gestión de gastos por categorías
+- ✅ Sistema completo de transacciones
+- ✅ 3 tipos de gráficos interactivos
+- ✅ Dashboard con 6 tarjetas de estadísticas
+- ✅ Diseño moderno y responsive
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🛠️ Tecnologías
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js 15
+- TypeScript
+- Prisma + PostgreSQL
+- Recharts (NUEVO)
+- Tailwind CSS
+- Ant Design
 
-## Deploy on Vercel
+## 📝 Modelos de Base de Datos
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Transaction (NUEVO)
+```prisma
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  description String
+  amount      Float
+  type        String   # income | expense
+  category    String
+  date        DateTime
+}
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🐛 Solución de Problemas
+
+Ver el archivo **SETUP.md** para instrucciones detalladas de instalación y solución de problemas comunes.
+
+---
+
+**Desarrollado con ❤️ usando Next.js y TypeScript**
+

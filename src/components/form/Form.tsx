@@ -1,6 +1,5 @@
 "use client";
 import { createBudget, FormState, updateBudget } from "@/lib/actions";
-import { parse } from "path";
 import React, { useActionState, useState } from "react";
 
 export const Form = ({
@@ -19,22 +18,31 @@ export const Form = ({
           amount: 2000,
         }
   );
-  const [state, action, pending] = useActionState<FormState, any>(
+  const [state, action, pending] = useActionState<FormState, { amount: string }>(
     createBudget,
     undefined
   );
   const [stateUpdate, actionUpdate, pendingUpdate] = useActionState<
     FormState,
-    any
+    { id: number; amount: string }
   >(updateBudget, undefined);
   return (
     <form
-      action={() => income.id ? actionUpdate(income) : action(income)}
-      className="w-full flex flex-col items-center gap-2"
+      action={() => {
+        const budgetData = { ...income, amount: income.amount.toString() };
+        return income.id ? actionUpdate(budgetData) : action(budgetData);
+      }}
+      className="w-full space-y-4"
     >
-      <span className="font-semibold">Ingresa tu sueldo mensual (USD):</span>
-      <div className="w-full flex items-center gap-2">
-        <label className="flex-1">
+      <h3 className="font-bold text-xl text-gray-800">
+        Presupuesto Mensual
+      </h3>
+      <label className="flex flex-col space-y-2">
+        <span className="text-sm font-medium text-gray-700">
+          Ingresa tu sueldo mensual (USD):
+        </span>
+        <div className="flex items-center gap-2 bg-white rounded-lg border border-gray-300 px-3 py-2">
+          <span className="text-gray-600 font-semibold">$</span>
           <input
             type="number"
             value={income.amount}
@@ -46,19 +54,21 @@ export const Form = ({
                 amount: value === "" ? 0 : parseFloat(value),
               });
             }}
-            className="rounded-md flex-1 text-black p-2 w-full"
+            className="flex-1 text-black outline-none"
+            placeholder="0.00"
           />
-        </label>
-        <div className="">
-          <button
-            disabled={pending || pendingUpdate}
-            type="submit"
-            className="bg-[#834CFC] text-white p-2 rounded-md disabled:bg-[#834CFC]/50"
-          >
-            Calcular presupuesto
-          </button>
         </div>
-      </div>
+      </label>
+      <button
+        disabled={pending || pendingUpdate}
+        type="submit"
+        className="w-full bg-[#834CFC] text-white py-2.5 px-4 rounded-lg hover:bg-[#6d3dd4] transition-colors disabled:opacity-50 font-semibold"
+      >
+        {income.id ? "Actualizar presupuesto" : "Calcular presupuesto"}
+      </button>
+      {(state?.status === "success" || stateUpdate?.status === "success") && (
+        <p className="text-green-600 text-sm text-center">¡Presupuesto guardado!</p>
+      )}
     </form>
   );
 };

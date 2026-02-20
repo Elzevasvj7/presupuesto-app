@@ -4,10 +4,10 @@ import prisma from "./prisma";
 
 export type FormState =
   | {
-      errors?: any;
+      errors?: Record<string, string[]>;
       message?: string;
       status?: string;
-      data?: any;
+      data?: Record<string, unknown>;
     }
   | undefined;
 
@@ -17,7 +17,7 @@ export async function createBudgetItem(
 ) {
   console.log(budget);
   try {
-    const response = await prisma.budgetItem.create({
+    await prisma.budgetItem.create({
       data: {
         name: budget.name,
         category: budget.category,
@@ -28,7 +28,7 @@ export async function createBudgetItem(
     return {
       status: "success",
     };
-  } catch (error: any) {
+  } catch {
     return {
       status: "error",
     };
@@ -47,7 +47,7 @@ export async function updateBudgetItem(
   }
 ) {
   try {
-    const response = await prisma.budgetItem.update({
+    await prisma.budgetItem.update({
       where: {
         id: budget.id,
       },
@@ -61,7 +61,7 @@ export async function updateBudgetItem(
     return {
       status: "success",
     };
-  } catch (error: any) {
+  } catch {
     return {
       status: "error",
     };
@@ -86,16 +86,16 @@ export async function createBudget(
   budget: { amount: string }
 ) {
   try {
-    const response = await prisma.budget.create({
+    await prisma.budget.create({
       data: {
         amount: parseFloat(budget.amount),
       },
     });
-    console.log(response);
+    console.log("Budget created");
     return {
       status: "success",
     };
-  } catch (error: any) {
+  } catch {
     return {
       status: "error",
     };
@@ -119,7 +119,7 @@ export async function updateBudget(
     return {
       status: "success",
     };
-  } catch (error: any) {
+  } catch {
     return {
       status: "error",
     };
@@ -131,3 +131,55 @@ export async function getBudget() {
   const response = await prisma.budget.findFirst();
   return response;
 }
+
+// Transaction actions
+export async function createTransaction(
+  state: FormState,
+  transaction: {
+    description: string;
+    amount: string;
+    type: string;
+    category: string;
+    date: string;
+  }
+) {
+  try {
+    await prisma.transaction.create({
+      data: {
+        description: transaction.description,
+        amount: parseFloat(transaction.amount),
+        type: transaction.type,
+        category: transaction.category,
+        date: new Date(transaction.date),
+      },
+    });
+    return {
+      status: "success",
+    };
+  } catch {
+    return {
+      status: "error",
+    };
+  } finally {
+    revalidatePath("/");
+  }
+}
+
+export async function getTransactions() {
+  const response = await prisma.transaction.findMany({
+    orderBy: {
+      date: "desc",
+    },
+  });
+  return response;
+}
+
+export async function deleteTransaction(id: number) {
+  await prisma.transaction.delete({
+    where: {
+      id: id,
+    },
+  });
+  revalidatePath("/");
+}
+

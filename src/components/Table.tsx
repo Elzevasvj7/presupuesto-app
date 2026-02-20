@@ -4,18 +4,26 @@ import { Modal } from "antd";
 import React, { useState } from "react";
 import { TaskForm } from "./form/TaskForm";
 
+interface BudgetItem {
+  id: number;
+  name: string;
+  amount: number;
+  note: string | null;
+  category: string;
+}
+
 export const Table = ({
   budgets,
   budget,
 }: {
-  budgets: any[];
+  budgets: BudgetItem[];
   budget: { amount: number } | null;
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [task, setTask] = useState<{
     name: string;
     amount: number;
-    note: string;
+    note: string | null;
     category: string;
   }>({
     name: "",
@@ -27,17 +35,11 @@ export const Table = ({
 
   const total = budgets.reduce((acc, current) => acc + current.amount, 0);
 
-  const handlerDelete = async (id: any) => {
+  const handlerDelete = async (id: number) => {
     await deleteBudgetItem(id);
   };
 
-  const handlerEdit = async (budget: {
-    id: number;
-    name: string;
-    amount: number;
-    note: string;
-    category: string;
-  }) => {
+  const handlerEdit = async (budget: BudgetItem) => {
     setTask(budget);
     setIsModalOpen(!isModalOpen);
   };
@@ -49,7 +51,7 @@ export const Table = ({
   ) => {
     setTask((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
-  const calculateTotal = (budgets: any[], income: number) => {
+  const calculateTotal = (budgets: BudgetItem[], income: number) => {
     const total = budgets.reduce((acc, current) => acc + current.amount, 0);
     if (total > income) {
       return <span className="text-red-500">${income}</span>;
