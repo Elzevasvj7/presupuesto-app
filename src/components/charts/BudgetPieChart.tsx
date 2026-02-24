@@ -23,7 +23,7 @@ const COLORS = {
   basic: "#834CFC",
   personal: "#BBFD1A",
   save: "#FF6B6B",
-  available: "#F6F6F6",
+  available: "#f7f7f7",
 };
 
 export const BudgetPieChart = ({ budgets, income }: BudgetPieChartProps) => {
