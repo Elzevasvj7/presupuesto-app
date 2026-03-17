@@ -10,8 +10,19 @@ import { Form } from "@/components/form/Form";
 import { TaskForm } from "@/components/form/TaskForm";
 import { Table } from "@/components/Table";
 import { getBudget, getBudgetItems, getTransactions } from "@/lib/actions";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const budgets = await getBudgetItems();
   const budget = await getBudget();
   const transactions = await getTransactions();
@@ -20,7 +31,7 @@ export default async function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
       {/* Header */}
-      <DashboardHeader />
+      <DashboardHeader userEmail={user.email || ""} />
 
       {/* Stats Cards */}
       <DashboardStats
