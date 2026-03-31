@@ -8,8 +8,14 @@ import { TransactionList } from "@/components/TransactionList";
 import { TransactionForm } from "@/components/form/TransactionForm";
 import { Form } from "@/components/form/Form";
 import { TaskForm } from "@/components/form/TaskForm";
+import { BinanceConnectionForm } from "@/components/form/BinanceConnectionForm";
 import { Table } from "@/components/Table";
-import { getBudget, getBudgetItems, getTransactions } from "@/lib/actions";
+import {
+  getBinanceBalanceSummary,
+  getBudget,
+  getBudgetItems,
+  getTransactions,
+} from "@/lib/actions";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -26,6 +32,7 @@ export default async function Home() {
   const budgets = await getBudgetItems();
   const budget = await getBudget();
   const transactions = await getTransactions();
+  const binanceSummary = await getBinanceBalanceSummary();
   const income = budget?.amount || 0;
 
   return (
@@ -77,6 +84,11 @@ export default async function Home() {
           {/* Budget Form */}
           <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
             <Form budget={budget} />
+          </div>
+
+          {/* Binance Connection */}
+          <div className="bg-[#F6F6F6] rounded-2xl p-6 shadow-sm">
+            <BinanceConnectionForm summary={binanceSummary} />
           </div>
 
           {/* Task Form */}

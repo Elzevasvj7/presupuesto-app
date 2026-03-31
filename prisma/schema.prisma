@@ -49,3 +49,30 @@ model Transaction {
 
   @@index([userId])
 }
+
+model BinanceCredential {
+  id                    Int      @id @default(autoincrement())
+  userId                String   @unique // Unas credenciales Binance por usuario
+  apiKeyEncrypted       String
+  apiKeyIv              String
+  apiKeyAuthTag         String
+  apiSecretEncrypted    String
+  apiSecretIv           String
+  apiSecretAuthTag      String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model BinanceBalanceSnapshot {
+  id            Int      @id @default(autoincrement())
+  userId        String
+  totalUsd      Float
+  assetsCount   Int
+  balancesJson  String // JSON serializado para mantener esquema simple
+  capturedAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([capturedAt])
+}

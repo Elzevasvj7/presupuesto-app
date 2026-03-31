@@ -2,6 +2,11 @@
 import { revalidatePath } from "next/cache";
 import prisma from "./prisma";
 import { createClient } from "./supabase/server";
+import { decryptText, encryptText } from "./crypto";
+import {
+  BinanceBalanceSummary,
+  getBinanceSpotBalanceSummary,
+} from "./binance";
 
 export type FormState =
   | {
@@ -221,4 +226,140 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
+}
+
+export async function connectBinance(
+  _state: FormState,
+  formData: FormData,
+) {
+  try {
+    const userId = await getUserId();
+
+    const apiKey = String(formData.get("apiKey") || "").trim();
+    const apiSecret = String(formData.get("apiSecret") || "").trim();
+
+    if (!apiKey || !apiSecret) {
+      return {
+        status: "error",
+        message: "API Key y API Secret son obligatorios",
+      };
+    }
+
+    // Validate credentials before saving.
+    await getBinanceSpotBalanceSummary(apiKey, apiSecret);
+
+    const encryptedApiKey = encryptText(apiKey);
+    const encryptedApiSecret = encryptText(apiSecret);
+
+    await prisma.binanceCredential.upsert({
+      where: { userId },
+      update: {
+        apiKeyEncrypted: encryptedApiKey.encrypted,
+        apiKeyIv: encryptedApiKey.iv,
+        apiKeyAuthTag: encryptedApiKey.authTag,
+        apiSecretEncrypted: encryptedApiSecret.encrypted,
+        apiSecretIv: encryptedApiSecret.iv,
+        apiSecretAuthTag: encryptedApiSecret.authTag,
+      },
+      create: {
+        userId,
+        apiKeyEncrypted: encryptedApiKey.encrypted,
+        apiKeyIv: encryptedApiKey.iv,
+        apiKeyAuthTag: encryptedApiKey.authTag,
+        apiSecretEncrypted: encryptedApiSecret.encrypted,
+        apiSecretIv: encryptedApiSecret.iv,
+        apiSecretAuthTag: encryptedApiSecret.authTag,
+      },
+    });
+
+    return {
+      status: "success",
+      message: "Cuenta Binance conectada",
+    };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "No se pudo conectar Binance";
+
+    return {
+      status: "error",
+      message,
+    };
+  } finally {
+    revalidatePath("/");
+  }
+}
+
+export async function disconnectBinance(_state: FormState, _formData: FormData) {
+  try {
+    void _state;
+    void _formData;
+    const userId = await getUserId();
+    await prisma.binanceCredential.deleteMany({
+      where: { userId },
+    });
+
+    return {
+      status: "success",
+      message: "Cuenta Binance desconectada",
+    };
+  } catch {
+    return {
+      status: "error",
+      message: "No se pudo desconectar Binance",
+    };
+  } finally {
+    revalidatePath("/");
+  }
+}
+
+export async function getBinanceBalanceSummary(): Promise<
+  (BinanceBalanceSummary & { connected: true }) | { connected: false }
+> {
+  const userId = await getUserId();
+
+  const credential = await prisma.binanceCredential.findUnique({
+    where: { userId },
+  });
+
+  if (!credential) {
+    return { connected: false };
+  }
+
+  try {
+    const apiKey = decryptText({
+      encrypted: credential.apiKeyEncrypted,
+      iv: credential.apiKeyIv,
+      authTag: credential.apiKeyAuthTag,
+    });
+
+    const apiSecret = decryptText({
+      encrypted: credential.apiSecretEncrypted,
+      iv: credential.apiSecretIv,
+      authTag: credential.apiSecretAuthTag,
+    });
+
+    const summary = await getBinanceSpotBalanceSummary(apiKey, apiSecret);
+
+    await prisma.binanceBalanceSnapshot.create({
+      data: {
+        userId,
+        totalUsd: summary.totalUsd,
+        assetsCount: summary.assetsCount,
+        balancesJson: JSON.stringify(summary.assets),
+      },
+    });
+
+    return {
+      connected: true,
+      ...summary,
+    };
+  } catch {
+    // If credentials are invalid/revoked, keep connected=true to allow explicit replacement.
+    return {
+      connected: true,
+      totalUsd: 0,
+      assetsCount: 0,
+      assets: [],
+    };
+  }
 }
