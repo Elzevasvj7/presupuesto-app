@@ -11,12 +11,21 @@ export type FormState =
     }
   | undefined;
 
-export const TransactionForm = () => {
+export const TransactionForm = ({
+  initialType = "expense",
+  title = "Nueva Transacción",
+  initialBalanceType = "digital",
+}: {
+  initialType?: "expense" | "income";
+  title?: string;
+  initialBalanceType?: "cash" | "digital";
+}) => {
   const [transaction, setTransaction] = useState({
     description: "",
     amount: "",
-    type: "expense",
-    category: "comida",
+    type: initialType,
+    balanceType: initialBalanceType,
+    category: initialType === "income" ? "salario" : "comida",
     date: new Date().toISOString().split("T")[0],
   });
 
@@ -54,7 +63,7 @@ export const TransactionForm = () => {
 
   return (
     <form action={() => action(transaction)} className="p-4 space-y-3">
-      <h3 className="font-semibold text-lg mb-4">Nueva Transacción</h3>
+      <h3 className="font-semibold text-lg mb-4">{title}</h3>
 
       <label className="flex flex-col">
         <span className="text-sm font-medium mb-1">Tipo:</span>
@@ -114,6 +123,20 @@ export const TransactionForm = () => {
               {cat.label}
             </option>
           ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col">
+        <span className="text-sm font-medium mb-1">Medio del saldo:</span>
+        <select
+          name="balanceType"
+          value={transaction.balanceType}
+          onChange={handleChange}
+          className="rounded-md text-black p-2 border border-gray-300"
+          required
+        >
+          <option value="digital">Digital</option>
+          <option value="cash">Efectivo</option>
         </select>
       </label>
 

@@ -1,100 +1,86 @@
 "use client";
 import React from "react";
 
-interface BudgetItem {
-  amount: number;
-}
-
-interface Transaction {
-  date: Date;
-  type: string;
-  amount: number;
-}
-
 interface DashboardStatsProps {
-  budget: { amount: number } | null;
-  budgets: BudgetItem[];
-  transactions: Transaction[];
+  metrics: {
+    currentBalance: number;
+    monthIncome: number;
+    monthExpenses: number;
+    monthNet: number;
+    plannedBudgetTotal: number;
+    realVsPlan: number;
+  };
 }
 
-export const DashboardStats = ({
-  budget,
-  budgets,
-  transactions,
-}: DashboardStatsProps) => {
-  const income = budget?.amount || 0;
-  const totalExpenses = budgets.reduce((acc, item) => acc + item.amount, 0);
-  const available = income - totalExpenses;
+const currencyFormatter = new Intl.NumberFormat("es-ES", {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+});
 
-  // Calcular transacciones del mes actual
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  
-  const monthTransactions = transactions.filter((t) => {
-    const date = new Date(t.date);
-    return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-  });
-
-  const monthIncome = monthTransactions
-    .filter((t) => t.type === "income")
-    .reduce((acc, t) => acc + t.amount, 0);
-
-  const monthExpenses = monthTransactions
-    .filter((t) => t.type === "expense")
-    .reduce((acc, t) => acc + t.amount, 0);
-
+export const DashboardStats = ({ metrics }: DashboardStatsProps) => {
   const stats = [
     {
-      label: "Presupuesto Total",
-      value: `$${income.toFixed(2)}`,
-      color: "bg-purple-500",
-      icon: "💰",
-    },
-    {
-      label: "Gastos Planificados",
-      value: `$${totalExpenses.toFixed(2)}`,
-      color: "bg-blue-500",
-      icon: "📊",
-    },
-    {
-      label: "Disponible",
-      value: `$${available.toFixed(2)}`,
-      color: available >= 0 ? "bg-green-500" : "bg-red-500",
+      label: "Saldo actual",
+      helper: "Real disponible",
+      value: currencyFormatter.format(metrics.currentBalance),
+      color: "bg-slate-900",
       icon: "💵",
+      className: "md:col-span-2 xl:col-span-2",
     },
     {
-      label: "Ingresos del Mes",
-      value: `$${monthIncome.toFixed(2)}`,
+      label: "Ingresos del mes",
+      helper: "Real",
+      value: currencyFormatter.format(metrics.monthIncome),
       color: "bg-emerald-500",
       icon: "📈",
     },
     {
-      label: "Gastos del Mes",
-      value: `$${monthExpenses.toFixed(2)}`,
-      color: "bg-orange-500",
+      label: "Gastos del mes",
+      helper: "Real",
+      value: currencyFormatter.format(metrics.monthExpenses),
+      color: "bg-rose-500",
       icon: "📉",
     },
     {
-      label: "Balance Mensual",
-      value: `$${(monthIncome - monthExpenses).toFixed(2)}`,
-      color: monthIncome - monthExpenses >= 0 ? "bg-green-500" : "bg-red-500",
+      label: "Flujo neto del mes",
+      helper: "Ingresos - gastos",
+      value: currencyFormatter.format(metrics.monthNet),
+      color: metrics.monthNet >= 0 ? "bg-green-500" : "bg-red-500",
       icon: "💳",
+    },
+    {
+      label: "Presupuesto planificado",
+      helper: "Plan mensual",
+      value: currencyFormatter.format(metrics.plannedBudgetTotal),
+      color: "bg-violet-500",
+      icon: "🧭",
+    },
+    {
+      label: "Desviación vs plan",
+      helper: "Real - plan asignado",
+      value: currencyFormatter.format(metrics.realVsPlan),
+      color: metrics.realVsPlan > 0 ? "bg-red-500" : "bg-blue-500",
+      icon: "⚖️",
     },
   ];
 
   return (
-    <div className="grid grid-cols-6 gap-4 mb-6">
+    <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
       {stats.map((stat, index) => (
         <div
           key={index}
-          className="bg-[#F6F6F6] rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow"
+          className={`rounded-3xl border border-white/60 bg-white/90 p-5 shadow-sm backdrop-blur transition-shadow hover:shadow-md ${stat.className || ""}`}
         >
           <div className="flex items-center justify-between mb-2">
             <span className="text-2xl">{stat.icon}</span>
             <div className={`${stat.color} w-2 h-2 rounded-full`}></div>
           </div>
-          <p className="text-sm text-gray-600 mb-1">{stat.label}</p>
-          <p className="text-xl font-bold">{stat.value}</p>
+          <p className="text-sm text-gray-500 mb-1">{stat.label}</p>
+          <p className="text-2xl font-bold text-slate-900">{stat.value}</p>
+          <p className="mt-2 text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+            {stat.helper}
+          </p>
         </div>
       ))}
     </div>

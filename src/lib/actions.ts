@@ -17,6 +17,43 @@ export type FormState =
     }
   | undefined;
 
+export type DashboardOverviewData = {
+  budget: { id: number; amount: number } | null;
+  budgets: Array<{
+    id: number;
+    name: string;
+    category: string;
+    amount: number;
+    note: string | null;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+  transactions: Array<{
+    id: number;
+    description: string;
+    amount: number;
+    type: string;
+    balanceType: string;
+    category: string;
+    date: Date;
+    userId: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }>;
+  metrics: {
+    currentBalance: number;
+    cashBalance: number;
+    digitalBalance: number;
+    monthIncome: number;
+    monthExpenses: number;
+    monthNet: number;
+    plannedBudgetTotal: number;
+    plannedAllocationTotal: number;
+    realVsPlan: number;
+  };
+};
+
 async function getUserId(): Promise<string> {
   const supabase = await createClient();
   const {
@@ -172,6 +209,7 @@ export async function createTransaction(
     description: string;
     amount: string;
     type: string;
+    balanceType: string;
     category: string;
     date: string;
   },
@@ -183,6 +221,7 @@ export async function createTransaction(
         description: transaction.description,
         amount: parseFloat(transaction.amount),
         type: transaction.type,
+        balanceType: transaction.balanceType,
         category: transaction.category,
         date: new Date(transaction.date),
         userId,
@@ -209,6 +248,87 @@ export async function getTransactions() {
     },
   });
   return response;
+}
+
+export async function getDashboardOverview(): Promise<DashboardOverviewData> {
+  const userId = await getUserId();
+
+  const [budget, budgets, transactions] = await Promise.all([
+    prisma.budget.findUnique({
+      where: { userId },
+    }),
+    prisma.budgetItem.findMany({
+      where: { userId },
+      orderBy: [{ category: "asc" }, { createdAt: "asc" }],
+    }),
+    prisma.transaction.findMany({
+      where: { userId },
+      orderBy: [{ date: "desc" }, { createdAt: "desc" }],
+    }),
+  ]);
+
+  const currentBalance = transactions.reduce((total, transaction) => {
+    return total + (transaction.type === "income" ? transaction.amount : -transaction.amount);
+  }, 0);
+
+  const cashBalance = transactions.reduce((total, transaction) => {
+    if (transaction.balanceType !== "cash") {
+      return total;
+    }
+
+    return total + (transaction.type === "income" ? transaction.amount : -transaction.amount);
+  }, 0);
+
+  const digitalBalance = transactions.reduce((total, transaction) => {
+    if (transaction.balanceType !== "digital") {
+      return total;
+    }
+
+    return total + (transaction.type === "income" ? transaction.amount : -transaction.amount);
+  }, 0);
+
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth();
+  const currentYear = currentDate.getFullYear();
+
+  const monthTransactions = transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.date);
+    return (
+      transactionDate.getMonth() === currentMonth &&
+      transactionDate.getFullYear() === currentYear
+    );
+  });
+
+  const monthIncome = monthTransactions
+    .filter((transaction) => transaction.type === "income")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const monthExpenses = monthTransactions
+    .filter((transaction) => transaction.type === "expense")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const plannedBudgetTotal = budget?.amount || 0;
+  const plannedAllocationTotal = budgets.reduce(
+    (total, item) => total + item.amount,
+    0,
+  );
+
+  return {
+    budget,
+    budgets,
+    transactions,
+    metrics: {
+      currentBalance,
+      cashBalance,
+      digitalBalance,
+      monthIncome,
+      monthExpenses,
+      monthNet: monthIncome - monthExpenses,
+      plannedBudgetTotal,
+      plannedAllocationTotal,
+      realVsPlan: monthExpenses - plannedAllocationTotal,
+    },
+  };
 }
 
 export async function deleteTransaction(id: number) {

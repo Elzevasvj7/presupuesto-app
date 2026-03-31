@@ -41,6 +41,7 @@ model Transaction {
   description String // Descripción de la transacción
   amount      Float // Monto de la transacción
   type        String // Tipo: 'income' o 'expense'
+  balanceType String   @default("digital") // Medio del saldo: cash o digital
   category    String // Categoría (comida, transporte, salario, etc.)
   date        DateTime @default(now()) // Fecha de la transacción
   userId      String // ID del usuario de Supabase Auth

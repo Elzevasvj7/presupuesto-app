@@ -6,6 +6,7 @@ interface Transaction {
   id: number;
   description: string;
   category: string;
+  balanceType: string;
   date: Date;
   amount: number;
   type: string;
@@ -20,11 +21,25 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
     await deleteTransaction(id);
   };
 
+  const currencyFormatter = new Intl.NumberFormat("es-ES", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+  });
+
   return (
-    <div className="w-full h-full overflow-auto">
-      <h3 className="font-semibold text-lg mb-4">Transacciones Recientes</h3>
+    <div className="w-full h-full">
+      <div className="mb-4 flex items-end justify-between gap-3">
+        <div>
+          <h3 className="font-semibold text-lg">Actividad reciente</h3>
+          <p className="text-sm text-gray-500">Movimientos reales ordenados del más nuevo al más antiguo</p>
+        </div>
+        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+          {transactions.length} movimientos
+        </span>
+      </div>
       <div
-        className="space-y-2 overflow-auto h-[calc(100%-40px)]"
+        className="space-y-2 overflow-auto h-[calc(100%-100px)]"
         style={{
           scrollbarWidth: "thin",
           scrollbarColor: "#834CFC #F3F4F6",
@@ -33,7 +48,7 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
         {transactions.length === 0 ? (
           <p className="text-gray-500 text-center py-4">No hay transacciones</p>
         ) : (
-          transactions.slice().reverse().map((transaction) => (
+          transactions.map((transaction) => (
             <div
               key={transaction.id}
               className={`p-3 rounded-lg flex justify-between items-center ${
@@ -45,8 +60,12 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
               <div className="flex-1">
                 <p className="font-semibold">{transaction.description}</p>
                 <p className="text-sm text-gray-600">
-                  {transaction.category} •{" "}
-                  {new Date(transaction.date).toLocaleDateString("es-ES")}
+                  {transaction.category} • {transaction.balanceType === "cash" ? "Efectivo" : "Digital"} •{" "}
+                  {new Date(transaction.date).toLocaleDateString("es-ES", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </p>
               </div>
               <div className="flex items-center gap-3">
@@ -57,8 +76,8 @@ export const TransactionList = ({ transactions }: TransactionListProps) => {
                       : "text-red-600"
                   }`}
                 >
-                  {transaction.type === "income" ? "+" : "-"}$
-                  {transaction.amount.toFixed(2)}
+                  {transaction.type === "income" ? "+" : "-"}
+                  {currencyFormatter.format(transaction.amount)}
                 </span>
                 <button
                   onClick={() => handlerDelete(transaction.id)}

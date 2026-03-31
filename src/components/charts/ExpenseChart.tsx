@@ -23,39 +23,42 @@ interface ExpenseChartProps {
 
 export const ExpenseChart = ({ budgets, income }: ExpenseChartProps) => {
   const categories = {
-    basic: { label: "Necesidades", budget: income * 0.5, expenses: 0 },
-    personal: { label: "Gastos personales", budget: income * 0.3, expenses: 0 },
-    save: { label: "Ahorro", budget: income * 0.2, expenses: 0 },
+    basic: { label: "Necesidades", budget: income * 0.5, assigned: 0 },
+    personal: { label: "Gastos personales", budget: income * 0.3, assigned: 0 },
+    save: { label: "Ahorro", budget: income * 0.2, assigned: 0 },
   };
 
-  // Calcular gastos por categoría
+  // Calcular montos planificados por categoría.
   budgets.forEach((budget) => {
     if (categories[budget.category as keyof typeof categories]) {
-      categories[budget.category as keyof typeof categories].expenses +=
+      categories[budget.category as keyof typeof categories].assigned +=
         budget.amount;
     }
   });
 
   const data = Object.entries(categories).map(([, value]) => ({
     name: value.label,
-    Presupuestado: value.budget,
-    Gastado: value.expenses,
-    Disponible: Math.max(0, value.budget - value.expenses),
+    Limite: value.budget,
+    Asignado: value.assigned,
+    Disponible: Math.max(0, value.budget - value.assigned),
   }));
 
   return (
     <div className="w-full h-full">
-      <h3 className="font-semibold text-lg mb-4">Gastos por Categoría</h3>
-      <ResponsiveContainer width="100%" height="90%">
+      <h3 className="font-semibold text-lg mb-1">Salud del plan 50/30/20</h3>
+      <p className="mb-4 text-sm text-gray-500">
+        Compara la capacidad recomendada contra lo que ya asignaste en tu planificación.
+      </p>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="Presupuestado" fill="#834CFC" />
-          <Bar dataKey="Gastado" fill="#BBFD1A" />
-          <Bar dataKey="Disponible" fill="#F6F6F6" />
+          <Bar dataKey="Limite" fill="#834CFC" />
+          <Bar dataKey="Asignado" fill="#BBFD1A" />
+          <Bar dataKey="Disponible" fill="#1883ff" />
         </BarChart>
       </ResponsiveContainer>
     </div>

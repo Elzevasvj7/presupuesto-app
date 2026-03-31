@@ -23,7 +23,7 @@ const COLORS = {
   basic: "#834CFC",
   personal: "#BBFD1A",
   save: "#FF6B6B",
-  available: "#f7f7f7",
+  available: "#1883ff",
 };
 
 export const BudgetPieChart = ({ budgets, income }: BudgetPieChartProps) => {
@@ -33,7 +33,7 @@ export const BudgetPieChart = ({ budgets, income }: BudgetPieChartProps) => {
     save: { label: "Ahorro", amount: 0 },
   };
 
-  // Calcular gastos por categoría
+  // Calcular distribución planificada por categoría.
   budgets.forEach((budget) => {
     if (categories[budget.category as keyof typeof categories]) {
       categories[budget.category as keyof typeof categories].amount +=
@@ -41,7 +41,7 @@ export const BudgetPieChart = ({ budgets, income }: BudgetPieChartProps) => {
     }
   });
 
-  const totalExpenses = Object.values(categories).reduce(
+  const totalAssigned = Object.values(categories).reduce(
     (acc, cat) => acc + cat.amount,
     0
   );
@@ -55,16 +55,19 @@ export const BudgetPieChart = ({ budgets, income }: BudgetPieChartProps) => {
         color: COLORS[key as keyof typeof COLORS],
       })),
     {
-      name: "Disponible",
-      value: Math.max(0, income - totalExpenses),
+      name: "Sin asignar",
+      value: Math.max(0, income - totalAssigned),
       color: COLORS.available,
     },
   ].filter((item) => item.value > 0);
 
   return (
     <div className="w-full h-full">
-      <h3 className="font-semibold text-lg mb-4">Distribución del Presupuesto</h3>
-      <ResponsiveContainer width="100%" height="90%">
+      <h3 className="font-semibold text-lg mb-1">Distribución planificada</h3>
+      <p className="mb-4 text-sm text-gray-500">
+        Así se reparte tu presupuesto mensual entre categorías y dinero aún no asignado.
+      </p>
+      <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
             data={data}
