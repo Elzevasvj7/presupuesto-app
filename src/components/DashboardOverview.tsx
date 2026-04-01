@@ -91,7 +91,6 @@ export const DashboardOverview = ({
 
   return (
     <div className="">
-      <DashboardHeader userEmail={userEmail} />
       <DashboardStats metrics={overview.metrics} />
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12 xl:col-span-8 space-y-6">
@@ -189,10 +188,10 @@ export const DashboardOverview = ({
           </section>
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <section className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-sm backdrop-blur h-80">
+            <section className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-sm backdrop-blur h-auto">
               <ExpenseChart budgets={overview.budgets} income={overview.metrics.plannedBudgetTotal} />
             </section>
-            <section className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-sm backdrop-blur h-80">
+            <section className="rounded-3xl border border-white/60 bg-white/90 p-6 shadow-sm backdrop-blur h-auto">
               <BudgetPieChart budgets={overview.budgets} income={overview.metrics.plannedBudgetTotal} />
             </section>
           </div>
