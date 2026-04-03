@@ -3,7 +3,6 @@
 import { Modal } from "antd";
 import React, { useMemo, useState } from "react";
 import { BinanceConnectionForm } from "@/components/form/BinanceConnectionForm";
-import { DashboardHeader } from "@/components/DashboardHeader";
 import { DashboardStats } from "@/components/DashboardStats";
 import { TransactionList } from "@/components/TransactionList";
 import { BudgetOverview } from "@/components/BudgetOverview";
@@ -44,11 +43,9 @@ const currencyFormatter = new Intl.NumberFormat("es-ES", {
 });
 
 export const DashboardOverview = ({
-  userEmail,
   overview,
   binanceSummary,
 }: {
-  userEmail: string;
   overview: DashboardOverviewData;
   binanceSummary: BinanceSummary;
 }) => {
