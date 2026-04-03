@@ -20,7 +20,6 @@ export default async function Home() {
 
   return (
     <DashboardOverview
-      userEmail={user.email || ""}
       overview={overview}
       binanceSummary={binanceSummary}
     />
